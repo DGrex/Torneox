@@ -256,13 +256,14 @@ def eliminar_equipo(request, torneo_id, equipo_id):
         pk=equipo_id,
         torneo_id=torneo_id,
     )
-    encuentros = Encuentro.objects.filter(
-        Q(equipo_local=equipo) | Q(equipo_visitante=equipo)
-    ).select_related("jornada")
-    partidos_jugados = encuentros.filter(
-        goles_local__isnull=False,
-        goles_visitante__isnull=False,
-    ).count()
+    encuentros_equipo = list(
+        Encuentro.objects.filter(
+            Q(equipo_local=equipo) | Q(equipo_visitante=equipo)
+        ).select_related("jornada", "equipo_local", "equipo_visitante")
+    )
+    partidos_jugados = sum(
+        1 for e in encuentros_equipo if e.goles_local is not None
+    )
 
     if partidos_jugados:
         messages.error(
@@ -272,17 +273,61 @@ def eliminar_equipo(request, torneo_id, equipo_id):
         )
         return redirect("torneos:equipos:lista", torneo_id=torneo_id)
 
+    equipos_count = Equipo.objects.filter(torneo_id=torneo_id).count()
+    quedaria_impar = (equipos_count - 1) % 2 == 1
+
     if request.method == "POST":
         nombre = equipo.nombre
+        torneo = equipo.torneo
+        slots = [
+            {
+                "jornada": e.jornada,
+                "otro": e.equipo_visitante if e.equipo_local_id == equipo.pk else e.equipo_local,
+                "era_local": e.equipo_local_id == equipo.pk,
+                "orden": e.orden,
+            }
+            for e in encuentros_equipo
+        ]
+
         with transaction.atomic():
             Encuentro.objects.filter(
                 Q(equipo_local=equipo) | Q(equipo_visitante=equipo)
             ).delete()
             equipo.delete()
-        messages.success(
-            request,
-            f"Se eliminó el equipo «{nombre}», sus jugadores y sus partidos pendientes.",
-        )
+
+            if quedaria_impar:
+                base = "FICTICIO - Equipo pendiente"
+                ficticio_nombre = base
+                sufijo = 2
+                while Equipo.objects.filter(torneo=torneo, nombre=ficticio_nombre).exists():
+                    ficticio_nombre = f"{base} {sufijo}"
+                    sufijo += 1
+                ficticio = Equipo.objects.create(
+                    torneo=torneo,
+                    nombre=ficticio_nombre,
+                    es_ficticio=True,
+                )
+                if slots:
+                    Encuentro.objects.bulk_create([
+                        Encuentro(
+                            jornada=slot["jornada"],
+                            equipo_local=ficticio if slot["era_local"] else slot["otro"],
+                            equipo_visitante=slot["otro"] if slot["era_local"] else ficticio,
+                            orden=slot["orden"],
+                        )
+                        for slot in slots
+                    ])
+                messages.success(
+                    request,
+                    f"Se eliminó el equipo «{nombre}» y sus partidos pendientes. "
+                    f"Se creó el equipo ficticio «{ficticio_nombre}» para mantener la "
+                    "cantidad par de equipos y se restablecieron sus partidos en el calendario.",
+                )
+            else:
+                messages.success(
+                    request,
+                    f"Se eliminó el equipo «{nombre}», sus jugadores y sus partidos pendientes.",
+                )
         return redirect("torneos:equipos:lista", torneo_id=torneo_id)
 
     return render(
@@ -294,6 +339,12 @@ def eliminar_equipo(request, torneo_id, equipo_id):
             "aviso": (
                 "Se eliminarán también sus jugadores, dirigentes y partidos "
                 "pendientes. Un equipo con resultados registrados no se puede eliminar."
+                + (
+                    " Al quedar una cantidad impar de equipos, se creará automáticamente "
+                    "un equipo ficticio para conservar el calendario."
+                    if quedaria_impar
+                    else ""
+                )
             ),
             "url_cancelar": reverse(
                 "torneos:equipos:lista",

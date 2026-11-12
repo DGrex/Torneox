@@ -40,6 +40,16 @@ urlpatterns = [
         name="reordenar_encuentros",
     ),
     path(
+        "<int:pk>/jornadas/<int:jornada_id>/equipo-libre/",
+        views.cambiar_equipo_libre_jornada,
+        name="cambiar_equipo_libre",
+    ),
+    path(
+        "<int:pk>/jornadas/<int:jornada_id>/programa/",
+        views.programa_jornada,
+        name="programa_jornada",
+    ),
+    path(
         "<int:torneo_id>/equipos/",
         include(("equipos.urls", "equipos"), namespace="equipos"),
     ),
