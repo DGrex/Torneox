@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Jugadores de {{ equipo.nombre }} · TorneoX{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-5xl">
+  <a href="{% url 'torneos:equipos:lista' torneo.pk %}" class="text-sm font-semibold text-emerald-800 hover:text-emerald-950">&larr; Volver a equipos</a>
+  <div class="mb-6 mt-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-wider text-emerald-800">Plantilla del equipo</p>
+      <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">{{ equipo.nombre }}</h1>
+      <p class="mt-2 text-sm text-slate-600">{{ torneo.nombre }}</p>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
+      <span class="text-slate-500">Jugadores registrados</span>
+      <p class="mt-0.5 font-bold text-slate-900">
+        {{ jugadores_registrados }}{% if limite_jugadores %} de {{ limite_jugadores }}{% else %} <span class="font-normal text-slate-500">· máximo pendiente</span>{% endif %}
+      </p>
+    </div>
+  </div>
+
+  {% if limite_jugadores is None %}
+    <div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
+      El torneo todavía no tiene un máximo de jugadores definido. Puedes registrar jugadores, pero recuerda completar esta regla para poder controlar el límite.
+      <a href="{% url 'torneos:editar' torneo.pk %}" class="ml-1 font-semibold underline">Completar reglas</a>
+    </div>
+  {% endif %}
+
+  <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
+    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div class="border-b border-slate-100 pb-4">
+        <h2 class="text-lg font-bold text-slate-900">Jugadores registrados</h2>
+        <p class="mt-1 text-sm text-slate-500">La cédula y el nombre completo no se pueden repetir en el sistema.</p>
+      </div>
+      {% if jugadores %}
+        <ul class="divide-y divide-slate-100">
+          {% for jugador in jugadores %}
+            <li class="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <span class="font-semibold text-slate-900">{{ jugador.nombre_completo }}</span>
+                <span class="ml-2 text-sm text-slate-500">Cédula: {{ jugador.cedula }}</span>
+              </div>
+              <div class="flex gap-4">
+                <a href="{% url 'torneos:equipos:editar_jugador' torneo.pk equipo.pk jugador.pk %}" class="text-sm font-semibold text-emerald-800 hover:text-emerald-950">Editar</a>
+                <a href="{% url 'torneos:equipos:eliminar_jugador' torneo.pk equipo.pk jugador.pk %}" class="text-sm font-semibold text-red-700 hover:text-red-900">Eliminar</a>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="py-12 text-center">
+          <h3 class="font-semibold text-slate-900">Aún no hay jugadores</h3>
+          <p class="mt-1 text-sm text-slate-500">Agrega los jugadores que formarán parte de la plantilla.</p>
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <h2 class="text-lg font-bold text-slate-900">Agregar jugador</h2>
+      <p class="mb-5 mt-1 text-sm text-slate-500">Ingresa la cédula ecuatoriana y los nombres completos.</p>
+      {% if limite_alcanzado %}
+        <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
+          Este equipo alcanzó el máximo de {{ limite_jugadores }} jugadores definido para el torneo.
+          <a href="{% url 'torneos:editar' torneo.pk %}" class="font-semibold underline">Revisar regla</a>
+        </div>
+      {% else %}
+        <form method="post" class="space-y-4">
+          {% csrf_token %}
+          <input type="hidden" name="registrar_jugador" value="1">
+          {% if form.non_field_errors %}
+            <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
+              {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+          {% endif %}
+          {% for field in form %}
+            <div>
+              <label for="{{ field.id_for_label }}" class="mb-1.5 block text-sm font-semibold text-slate-800">{{ field.label }}</label>
+              {{ field }}
+              {% for error in field.errors %}<p class="mt-1 text-sm text-red-700">{{ error }}</p>{% endfor %}
+            </div>
+          {% endfor %}
+          <button type="submit" class="w-full rounded-lg bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2">Agregar jugador</button>
+        </form>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

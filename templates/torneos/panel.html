@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Torneos · TorneoX{% endblock %}
+{% block content %}
+<div class="mb-8">
+  <p class="text-sm font-semibold uppercase tracking-wider text-emerald-800">Administración</p>
+  <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">Torneos</h1>
+  <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Define las reglas de cada campeonato. La fase inicial contempla a todos los equipos inscritos en un todos contra todos.</p>
+</div>
+
+<div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
+  <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <div class="flex items-center justify-between gap-4 border-b border-slate-100 pb-4">
+      <div>
+        <h2 class="text-lg font-bold text-slate-900">Torneos registrados</h2>
+        <p class="mt-1 text-sm text-slate-500">{{ torneos|length }} torneo{{ torneos|length|pluralize:"s" }}</p>
+      </div>
+      <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Fase inicial: todos contra todos</span>
+    </div>
+
+    {% if torneos %}
+      <ul class="divide-y divide-slate-100">
+        {% for torneo in torneos %}
+          <li class="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between">
+            <div class="min-w-0">
+              <h3 class="truncate font-semibold text-slate-900">{{ torneo.nombre }}</h3>
+              {% if torneo.equipos_participantes %}
+                <p class="mt-1 text-sm text-slate-500">{{ torneo.equipos_participantes }} equipo{{ torneo.equipos_participantes|pluralize:"s" }} participarán en el campeonato</p>
+              {% else %}
+                <p class="mt-1 text-sm font-medium text-amber-700">Pendiente: definir cuántos equipos participarán</p>
+              {% endif %}
+              {% if torneo.equipos_clasificados %}
+                <p class="mt-1 text-sm text-slate-500">{{ torneo.equipos_clasificados }} equipo{{ torneo.equipos_clasificados|pluralize:"s" }} clasificarán a la siguiente fase</p>
+              {% else %}
+                <p class="mt-1 text-sm font-medium text-amber-700">Pendiente: definir cuántos equipos clasificarán</p>
+              {% endif %}
+              {% if torneo.jugadores_maximos_por_equipo %}
+                <p class="mt-1 text-sm text-slate-500">Máximo {{ torneo.jugadores_maximos_por_equipo }} jugador{{ torneo.jugadores_maximos_por_equipo|pluralize:"es" }} por equipo</p>
+              {% else %}
+                <p class="mt-1 text-sm font-medium text-amber-700">Pendiente: definir el máximo de jugadores por equipo</p>
+              {% endif %}
+              {% if torneo.bonificacion_habilitada %}
+                <p class="mt-2 text-xs font-medium text-emerald-800">Bonificación activa: 1.º +{{ bonificacion_primer_lugar }} pts · 2.º +{{ bonificacion_segundo_lugar }} pt</p>
+              {% else %}
+                <p class="mt-2 text-xs text-slate-500">Bonificación desactivada</p>
+              {% endif %}
+            </div>
+            <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
+              <a href="{% url 'torneos:editar' torneo.pk %}" class="inline-flex justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-emerald-700 hover:text-emerald-800">Editar</a>
+              <a href="{% url 'torneos:gestionar' torneo.pk %}" class="inline-flex justify-center rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900">Gestionar torneo</a>
+              <a href="{% url 'torneos:eliminar' torneo.pk %}" class="inline-flex justify-center rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">Eliminar</a>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="py-12 text-center">
+        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-xl text-emerald-800">+</div>
+        <h3 class="mt-4 font-semibold text-slate-900">Aún no hay torneos</h3>
+        <p class="mx-auto mt-1 max-w-sm text-sm leading-6 text-slate-500">Crea el primer campeonato y configura sus reglas de clasificación y bonificación.</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <aside class="space-y-6">
+    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <h2 class="text-lg font-bold text-slate-900">Crear torneo</h2>
+      <p class="mt-1 mb-5 text-sm text-slate-500">Los datos de participación y clasificación se pueden completar después, pero recuérdalos antes de iniciar y cerrar la fase, respectivamente.</p>
+      <form method="post" class="space-y-5">
+        {% csrf_token %}
+        {% include "torneos/_form_fields.html" %}
+        <button type="submit" class="w-full rounded-lg bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2">Crear torneo</button>
+      </form>
+    </section>
+
+    <section class="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
+      <h2 class="font-semibold text-emerald-950">Regla de la primera fase</h2>
+      <p class="mt-2 text-sm leading-6 text-emerald-900">Participan todos los equipos inscritos. Cada equipo se enfrenta con todos los demás; no se excluyen equipos de esta fase.</p>
+    </section>
+  </aside>
+</div>
+{% endblock %}

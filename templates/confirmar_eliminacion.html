@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }} · TorneoX{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-xl">
+  <a href="{{ url_cancelar }}" class="text-sm font-semibold text-emerald-800 hover:text-emerald-950">&larr; Cancelar y volver</a>
+  <section class="mt-5 rounded-2xl border border-red-200 bg-white p-6 shadow-sm sm:p-8">
+    <p class="text-sm font-semibold uppercase tracking-wider text-red-700">Confirmación requerida</p>
+    <h1 class="mt-2 text-2xl font-bold tracking-tight text-slate-950">{{ titulo }}</h1>
+    <p class="mt-4 text-slate-800">¿Deseas eliminar <strong>{{ elemento }}</strong>?</p>
+    <p class="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">{{ aviso }}</p>
+    <form method="post" class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+      {% csrf_token %}
+      <a href="{{ url_cancelar }}" class="rounded-lg border border-slate-300 px-4 py-2.5 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancelar</a>
+      <button type="submit" class="rounded-lg bg-red-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-800">{{ texto_confirmar }}</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

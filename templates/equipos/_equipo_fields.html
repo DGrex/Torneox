@@ -1,0 +1,49 @@
+<div>
+  <label for="{{ form.nombre.id_for_label }}" class="mb-1.5 block text-sm font-semibold text-slate-800">{{ form.nombre.label }}</label>
+  {{ form.nombre }}
+  {% for error in form.nombre.errors %}<p class="mt-1 text-sm text-red-700">{{ error }}</p>{% endfor %}
+</div>
+
+<fieldset class="space-y-4">
+  <legend class="text-sm font-semibold text-slate-800">Dirigentes</legend>
+  {% for field in form %}
+    {% if field.name == "dirigente_1" or field.name == "dirigente_2" or field.name == "dirigente_3" %}
+      <div>
+        <label for="{{ field.id_for_label }}" class="mb-1.5 block text-sm font-medium text-slate-700">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}<p class="mt-1 text-sm text-red-700">{{ error }}</p>{% endfor %}
+      </div>
+    {% endif %}
+  {% endfor %}
+</fieldset>
+
+<fieldset>
+  <legend class="mb-2 text-sm font-semibold text-slate-800">{{ form.dirigente_prioritario.label }}</legend>
+  <p class="mb-3 text-xs leading-5 text-slate-500">Elige exactamente uno de los dirigentes registrados.</p>
+  <div class="space-y-2">
+    {% for radio in form.dirigente_prioritario %}
+      <label class="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+        {{ radio.tag }}<span>{{ radio.choice_label }}</span>
+      </label>
+    {% endfor %}
+  </div>
+  {% for error in form.dirigente_prioritario.errors %}<p class="mt-1 text-sm text-red-700">{{ error }}</p>{% endfor %}
+</fieldset>
+
+<div>
+  <h3 class="text-sm font-semibold text-slate-800">Contacto del dirigente prioritario</h3>
+  <p class="mb-3 mt-1 text-xs leading-5 text-slate-500">Estos datos se guardan con el dirigente seleccionado como contacto principal.</p>
+  {% for field in form %}
+    {% if field.name == "telefono_prioritario" or field.name == "correo_prioritario" %}
+      <div class="mb-4 last:mb-0">
+        <label for="{{ field.id_for_label }}" class="mb-1.5 block text-sm font-medium text-slate-700">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}<p class="mt-1 text-sm text-red-700">{{ error }}</p>{% endfor %}
+      </div>
+    {% endif %}
+  {% endfor %}
+</div>
+
+{% if form.non_field_errors %}
+  {% for error in form.non_field_errors %}<p class="text-sm text-red-700">{{ error }}</p>{% endfor %}
+{% endif %}

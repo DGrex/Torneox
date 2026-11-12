@@ -1,0 +1,59 @@
+<div class="space-y-5">
+  <div>
+    <label for="{{ form.nombre.id_for_label }}" class="mb-1.5 block text-sm font-semibold text-slate-800">{{ form.nombre.label }}</label>
+    {{ form.nombre }}
+    {% for error in form.nombre.errors %}
+      <p class="mt-1 text-sm text-red-700">{{ error }}</p>
+    {% endfor %}
+  </div>
+
+  <div>
+    <label for="{{ form.equipos_participantes.id_for_label }}" class="mb-1.5 block text-sm font-semibold text-slate-800">{{ form.equipos_participantes.label }}</label>
+    {{ form.equipos_participantes }}
+    <p class="mt-1.5 text-xs leading-5 text-slate-500">{{ form.equipos_participantes.help_text }}</p>
+    {% for error in form.equipos_participantes.errors %}
+      <p class="mt-1 text-sm text-red-700">{{ error }}</p>
+    {% endfor %}
+  </div>
+
+  <div>
+    <label for="{{ form.equipos_clasificados.id_for_label }}" class="mb-1.5 block text-sm font-semibold text-slate-800">{{ form.equipos_clasificados.label }}</label>
+    {{ form.equipos_clasificados }}
+    <p class="mt-1.5 text-xs leading-5 text-slate-500">{{ form.equipos_clasificados.help_text }}</p>
+    {% for error in form.equipos_clasificados.errors %}
+      <p class="mt-1 text-sm text-red-700">{{ error }}</p>
+    {% endfor %}
+  </div>
+
+  <div>
+    <label for="{{ form.jugadores_maximos_por_equipo.id_for_label }}" class="mb-1.5 block text-sm font-semibold text-slate-800">{{ form.jugadores_maximos_por_equipo.label }}</label>
+    {{ form.jugadores_maximos_por_equipo }}
+    <p class="mt-1.5 text-xs leading-5 text-slate-500">{{ form.jugadores_maximos_por_equipo.help_text }}</p>
+    {% for error in form.jugadores_maximos_por_equipo.errors %}
+      <p class="mt-1 text-sm text-red-700">{{ error }}</p>
+    {% endfor %}
+  </div>
+
+  <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+    <label for="{{ form.bonificacion_habilitada.id_for_label }}" class="flex cursor-pointer items-start gap-3">
+      {{ form.bonificacion_habilitada }}
+      <span>
+        <span class="block text-sm font-semibold text-slate-800">{{ form.bonificacion_habilitada.label }}</span>
+        <span class="mt-1 block text-xs leading-5 text-slate-500">{{ form.bonificacion_habilitada.help_text }}</span>
+      </span>
+    </label>
+    {% for error in form.bonificacion_habilitada.errors %}
+      <p class="mt-2 text-sm text-red-700">{{ error }}</p>
+    {% endfor %}
+    <div class="mt-4 grid grid-cols-2 gap-3 border-t border-slate-200 pt-4">
+      <div class="rounded-lg bg-white p-3">
+        <p class="text-xs text-slate-500">Primer lugar</p>
+        <p class="mt-1 font-bold text-emerald-800">+{{ bonificacion_primer_lugar }} puntos</p>
+      </div>
+      <div class="rounded-lg bg-white p-3">
+        <p class="text-xs text-slate-500">Segundo lugar</p>
+        <p class="mt-1 font-bold text-emerald-800">+{{ bonificacion_segundo_lugar }} punto</p>
+      </div>
+    </div>
+  </div>
+</div>
