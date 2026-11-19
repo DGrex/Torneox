@@ -194,7 +194,11 @@ def gestionar_torneo(request, pk):
             for enc in j.encuentros.all()
         )
         umbral = j.total_partidos - (1 if tiene_ficticio else 0)
-        if j.partidos_jugados > 0 and j.partidos_jugados >= umbral:
+        if (
+            j.fecha_programada
+            and j.partidos_jugados > 0
+            and j.partidos_jugados >= umbral
+        ):
             jornadas_cerradas_pks.add(j.pk)
 
     return render(

@@ -377,9 +377,9 @@ class CalendarioTorneoTests(TestCase):
 
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(respuesta, "Calendario generado")
-        self.assertContains(respuesta, "Jornada 1")
+        self.assertContains(respuesta, "J1")
         self.assertContains(respuesta, "<details")
-        self.assertContains(respuesta, "0/2 resultados")
+        self.assertContains(respuesta, "0/2")
         self.assertContains(respuesta, "Todos los equipos")
 
     def test_administrador_puede_programar_jornada_y_registrar_resultado(self):
@@ -411,6 +411,52 @@ class CalendarioTorneoTests(TestCase):
         self.assertEqual(jornada.fecha_programada, date(2026, 11, 20))
         self.assertEqual((encuentro.goles_local, encuentro.goles_visitante), (2, 1))
         self.assertTrue(encuentro.jugado)
+
+    def test_jornada_no_se_cierra_sin_fecha_y_permite_programarla(self):
+        self.crear_equipos(2)
+        self.client.force_login(self.administrador)
+        self.client.post(self.generar_url)
+        jornada = Jornada.objects.get(torneo=self.torneo)
+        encuentro = jornada.encuentros.get()
+        self.client.post(
+            reverse(
+                "torneos:actualizar_resultado",
+                args=[self.torneo.pk, encuentro.pk],
+            ),
+            {"goles_local": 2, "goles_visitante": 1},
+        )
+
+        respuesta_sin_fecha = self.client.get(self.url)
+
+        self.assertEqual(respuesta_sin_fecha.status_code, 200)
+        self.assertNotIn(jornada.pk, respuesta_sin_fecha.context["jornadas_cerradas_pks"])
+        self.assertContains(respuesta_sin_fecha, "Fecha pendiente")
+        self.assertContains(
+            respuesta_sin_fecha,
+            reverse(
+                "torneos:actualizar_fecha_jornada",
+                args=[self.torneo.pk, jornada.pk],
+            ),
+        )
+
+        self.client.post(
+            reverse(
+                "torneos:actualizar_fecha_jornada",
+                args=[self.torneo.pk, jornada.pk],
+            ),
+            {"fecha_programada": "2026-11-20"},
+        )
+        respuesta_con_fecha = self.client.get(self.url)
+
+        self.assertIn(jornada.pk, respuesta_con_fecha.context["jornadas_cerradas_pks"])
+        self.assertContains(respuesta_con_fecha, "✓ Cerrada")
+        self.assertNotContains(
+            respuesta_con_fecha,
+            reverse(
+                "torneos:actualizar_fecha_jornada",
+                args=[self.torneo.pk, jornada.pk],
+            ),
+        )
 
     def test_no_permite_mover_el_partido_ficticio_del_final(self):
         self.crear_equipos(3)
@@ -458,7 +504,8 @@ class CalendarioTorneoTests(TestCase):
 
         respuesta = self.client.get(self.url)
 
-        self.assertContains(respuesta, "Partido con equipo ficticio")
+        self.assertContains(respuesta, 'data-fictitious-match="true"')
+        self.assertContains(respuesta, "Libre")
         self.assertNotContains(respuesta, "Eliminar partido pendiente")
 
     def test_jornada_historica_guarda_partido_ficticio_al_final(self):
@@ -608,7 +655,17 @@ class CalendarioTorneoTests(TestCase):
         }
         self.assertEqual(len(partidos_historicos), 6)
         self.assertTrue(all(not partido.jugado for partido in partidos_historicos))
-        self.assertContains(self.client.get(self.url), "Guardar resultado")
+        respuesta_panel = self.client.get(self.url)
+        self.assertContains(respuesta_panel, 'name="goles_local"')
+        self.assertContains(respuesta_panel, 'name="goles_visitante"')
+        for partido in partidos_historicos:
+            self.assertContains(
+                respuesta_panel,
+                reverse(
+                    "torneos:actualizar_resultado",
+                    args=[self.torneo.pk, partido.pk],
+                ),
+            )
 
         respuesta_generacion = self.client.post(self.generar_url)
 
